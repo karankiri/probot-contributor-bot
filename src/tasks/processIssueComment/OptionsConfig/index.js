@@ -115,6 +115,10 @@ class OptionsConfig {
             ...new Set([...oldContributions, ...contributions]),
         ]
         context.log.info('oldContributions', oldContributions)
+        context.log.info('newContributions', newContributions)
+        if(oldContributions.sort().join(',')=== newContributions.sort().join(',')){
+            return false
+        }
         const newContributorsList = await addContributorWithDetails({
             options,
             login,
@@ -123,8 +127,7 @@ class OptionsConfig {
             avatar_url,
             profile: profileWithProtocol,
         })
-        context.log.info('newContributions', newContributions)
-      context.log.info('newContributorsList', newContributorsList)
+        context.log.info('newContributorsList', newContributorsList)
         const newOptions = {
             ...options,
             contributors: newContributorsList,

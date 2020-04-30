@@ -34,7 +34,7 @@ async function processAddContributor({
         username: who,
     })
 
-    await optionsConfig.addContributor({
+    const result = await optionsConfig.addContributor({
         login: who,
         contributions,
         name,
@@ -42,6 +42,10 @@ async function processAddContributor({
         profile,
         context
     })
+    if(result === false) {
+      context.log.info('same contributions result')
+      return
+    }
 
     const contentFiles = new ContentFiles({
         repository,
@@ -56,25 +60,31 @@ async function processAddContributor({
         content: optionsConfig.getRaw(),
         originalSha: optionsConfig.getOriginalSha(),
     }
-    context.log.info('filesByPathToUpdate', filesByPathToUpdate)
-    const {
-        pullRequestURL,
-        pullCreated,
-    } = await repository.createPullRequestFromFiles({
-        title: `docs: add ${who} as a contributor`,
-        body: `Adds @${who} as a contributor for ${contributions.join(
-            ', ',
-        )}`, // .\n\nThis was requested by ${commentReply.replyingToWho()} [in this comment](${commentReply.replyingToWhere()})
+    //context.log.info('filesByPathToUpdate', filesByPathToUpdate)
+    // const {
+    //     pullRequestURL,
+    //     pullCreated,
+    // } = await repository.createPullRequestFromFiles({
+    //     title: `docs: add ${who} as a contributor`,
+    //     body: `Adds @${who} as a contributor for ${contributions.join(
+    //         ', ',
+    //     )}`, // .\n\nThis was requested by ${commentReply.replyingToWho()} [in this comment](${commentReply.replyingToWhere()})
+    //     filesByPath: filesByPathToUpdate,
+    //     branchName,
+    // })
+    
+    await repository.createOrUpdateFiles({
         filesByPath: filesByPathToUpdate,
         branchName,
     })
+    return
 
-    if (pullCreated) {
-        // commentReply.reply(
-        //     `I've put up [a pull request](${pullRequestURL}) to add @${who}! :tada:`,
-        // )
-        return
-    }
+//     if (pullCreated) {
+//         // commentReply.reply(
+//         //     `I've put up [a pull request](${pullRequestURL}) to add @${who}! :tada:`,
+//         // )
+//         return
+//     }
     // Updated
     // commentReply.reply(
     //     `I've updated [the pull request](${pullRequestURL}) to add @${who}! :tada:`,
@@ -132,7 +142,7 @@ async function probotProcessIssueComment({ context, who, action, contributions})
     //const { who, action, contributions } = parseComment(commentBody)
     if (action === 'add') {
         const safeWho = getSafeRef(who)
-        const branchName = `all-contributors/add-${safeWho}`
+        const branchName =  context.payload.repository.default_branch;//`all-contributors/add-${safeWho}`
 
         const repository = await setupRepository({
             context,
