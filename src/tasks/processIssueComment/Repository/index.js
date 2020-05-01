@@ -214,7 +214,7 @@ class Repository {
             await this.createBranch(branchName)
         }
 
-        await this.createOrUpdateFiles({
+        return await this.createOrUpdateFiles({
             filesByPath,
             branchName,
         })
